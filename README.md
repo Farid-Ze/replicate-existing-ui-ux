@@ -1,0 +1,61 @@
+# Replicate Existing UI UX
+
+  <!-- Update the badge below with your repository owner/name -->
+
+![Build status](https://github.com/OWNER/REPO/actions/workflows/build.yml/badge.svg)
+
+This repo houses the UI/UX replication of the Things Inc portfolio experience. The original Figma exploration lives at https://www.figma.com/design/qMHRh7E036Z4CmNzdch7HK/Replicate-Existing-UI-UX.
+
+## Project baseline
+
+- `src/App.tsx` is the single application entry point.
+- Global styles are sourced from `src/styles/globals.css`.
+- Accessibility and theming are provided by `AccessibilityProvider` and `ThemeProvider` inside `App.tsx`.
+
+## Commands
+
+```bash
+npm install         # install dependencies
+npm run dev         # start the Vite dev server (http://localhost:5173 by default)
+npm run lint        # run ESLint (React + a11y rules)
+npm run test        # execute Vitest + axe accessibility smoke checks
+npm run test:e2e    # execute Playwright smoke covering theme + filters (run `npx playwright install` once)
+npm run build       # create a production build in /build
+npm run bundle:check# validate gzip bundle budget (250 kB limit)
+npm run analyze     # emit build/bundle-report.html with treemap metrics
+```
+
+## Feature flags
+
+Toggle performance and monitoring behaviour via Vite environment variables (set in `.env` or your deployment provider):
+
+| Flag                                  | Behaviour                                                                                                                                              |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `VITE_ENABLE_LAZY_HOME_PAGE=true`     | Lazily load the `HomePage` bundle using `React.lazy` + suspense; prefetches on navigation.                                                             |
+| `VITE_ENABLE_LAZY_HOME_SECTIONS=true` | Splits the quote, log book, and footer sections into their own suspense boundaries with progressive fallbacks.                                         |
+| `VITE_ENABLE_PERF_METRICS=true`       | Registers Web Vitals listeners (CLS/FID/LCP/INP/TTFB), records them via the in-app collector, and dispatches `perf-metric` events for custom handling. |
+| `VITE_ENABLE_ANALYTICS=true`          | Injects [Vercel Analytics](https://vercel.com/analytics) for real-time engagement/performance tracking.                                                |
+| `VITE_ENABLE_MONITORING=true`         | Streams collected Web Vitals directly to [`@vercel/speed-insights`](https://vercel.com/docs/speed-insights) for production monitoring.                 |
+
+All flags default to `false`, keeping the legacy behaviour until you're ready to roll out.
+
+## Monitoring
+
+- `VITE_ENABLE_ANALYTICS=true` automatically calls `@vercel/analytics`’s `inject()` helper on bootstrap for engagement dashboards.
+- `VITE_ENABLE_PERF_METRICS=true` + `VITE_ENABLE_MONITORING=true` stream Core Web Vitals to [`@vercel/speed-insights`](https://vercel.com/docs/speed-insights) using the built-in `PerformanceCollector`.
+- Listen for the `perf-metric` event (or inject a custom reporter into `initPerformanceMetrics`) to forward metrics to your preferred observability stack.
+
+## Continuous integration
+
+Every push and pull request runs linting, tests, `npm run build`, the bundle budget check, and emits a bundle report artifact via GitHub Actions (see `.github/workflows/build.yml`). Replace the badge placeholder above with your repository slug to display live status.
+
+## Manual smoke checklist
+
+Run through these steps after significant UI changes:
+
+1. `npm run dev` and open the served URL.
+2. Landing → home transition animates without console errors; browser back/forward updates history correctly.
+3. Portfolio filters/search update the project grid and screen-reader announcement region.
+4. Log Book section reveals on scroll with animations intact.
+5. Theme toggle switches light/dark variants and persists across refresh.
+6. Run Lighthouse or axe browser extension; elevate any P0 accessibility issues immediately.
