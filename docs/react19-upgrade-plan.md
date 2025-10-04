@@ -35,6 +35,17 @@ _Last updated: 2025-10-05_
 
 _Next action:_ coordinate with release engineering for a staging deploy slot, then execute the table rows above and attach screenshots or Speed Insights links.
 
+### Staging automation (GitHub Actions)
+- Manual trigger via Actions → "Deploy to GitHub Pages" with inputs:
+   - `enable_perf_metrics`: true/false
+   - `enable_monitoring`: true/false
+   - `ref`: branch or tag to deploy (default `main`)
+- The workflow builds with the proper base path and publishes to GitHub Pages for a fast staging URL.
+
+### CI baseline automation
+- CI runs on push/PR: lint, test, build, bundle budget, and `baseline:collect`.
+- Baseline JSON is uploaded as a build artifact (see Actions run artifacts: `baseline-report`).
+
 > _Status:_ staging soak + accessibility fix remain outstanding (targeting Week 3).
 
 ## 🎯 Goals
