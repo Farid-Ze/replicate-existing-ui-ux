@@ -23,6 +23,7 @@ export default defineConfig(async ({ mode }) => {
 
   const config: UserConfig = {
     plugins,
+    base: process.env.VITE_BASE || undefined,
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
       alias: {
