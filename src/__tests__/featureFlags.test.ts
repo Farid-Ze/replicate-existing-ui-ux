@@ -12,11 +12,12 @@ describe("feature flags", () => {
     await vi.resetModules();
     const { featureFlags } = await importFlags();
 
-  expect(featureFlags.lazyHomePage).toBe(false);
-  expect(featureFlags.lazyHomeSections).toBe(false);
-  expect(featureFlags.performanceMetrics).toBe(false);
-  expect(featureFlags.analytics).toBe(false);
-  expect(featureFlags.monitoring).toBe(false);
+    expect(featureFlags.lazyHomePage).toBe(false);
+    expect(featureFlags.lazyHomeSections).toBe(false);
+    expect(featureFlags.performanceMetrics).toBe(false);
+    expect(featureFlags.analytics).toBe(false);
+    expect(featureFlags.monitoring).toBe(false);
+    expect(featureFlags.pwa).toBe(false);
   });
 
   it("activate when corresponding environment variables are truthy", async () => {
@@ -25,6 +26,7 @@ describe("feature flags", () => {
     vi.stubEnv("VITE_ENABLE_PERF_METRICS", "1");
     vi.stubEnv("VITE_ENABLE_ANALYTICS", "yes");
     vi.stubEnv("VITE_ENABLE_MONITORING", "true");
+    vi.stubEnv("VITE_ENABLE_PWA", "true");
 
     await vi.resetModules();
     const { featureFlags } = await importFlags();
@@ -34,6 +36,7 @@ describe("feature flags", () => {
     expect(featureFlags.performanceMetrics).toBe(true);
     expect(featureFlags.analytics).toBe(true);
     expect(featureFlags.monitoring).toBe(true);
+    expect(featureFlags.pwa).toBe(true);
   });
 
   it("allows overriding flags for tests", async () => {

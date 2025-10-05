@@ -17,66 +17,12 @@
 - [x] **NEW**: Optimized image component with lazy loading
 - [x] **NEW**: Memory usage monitoring
 - [x] **NEW**: GPU-accelerated animations
+- [x] Removed unused shadcn/ui primitives to slim bundle
 
 ## IMMEDIATE NEXT STEPS 🚀
 
-### 1. REMOVE UNUSED SHADCN COMPONENTS (Save ~50KB)
-```bash
-# Safe to delete (not used anywhere):
-rm components/ui/accordion.tsx
-rm components/ui/alert-dialog.tsx
-rm components/ui/alert.tsx
-rm components/ui/avatar.tsx
-rm components/ui/badge.tsx
-rm components/ui/breadcrumb.tsx
-rm components/ui/calendar.tsx
-rm components/ui/carousel.tsx
-rm components/ui/chart.tsx
-rm components/ui/checkbox.tsx
-rm components/ui/collapsible.tsx
-rm components/ui/command.tsx
-rm components/ui/context-menu.tsx
-rm components/ui/dialog.tsx
-rm components/ui/drawer.tsx
-rm components/ui/dropdown-menu.tsx
-rm components/ui/form.tsx
-rm components/ui/hover-card.tsx
-rm components/ui/input-otp.tsx
-rm components/ui/label.tsx
-rm components/ui/menubar.tsx
-rm components/ui/navigation-menu.tsx
-rm components/ui/pagination.tsx
-rm components/ui/popover.tsx
-rm components/ui/progress.tsx
-rm components/ui/radio-group.tsx
-rm components/ui/resizable.tsx
-rm components/ui/scroll-area.tsx
-rm components/ui/select.tsx
-rm components/ui/separator.tsx
-rm components/ui/sheet.tsx
-rm components/ui/sidebar.tsx
-rm components/ui/skeleton.tsx
-rm components/ui/slider.tsx
-rm components/ui/sonner.tsx
-rm components/ui/switch.tsx
-rm components/ui/table.tsx
-rm components/ui/tabs.tsx
-rm components/ui/textarea.tsx
-rm components/ui/toggle-group.tsx
-rm components/ui/toggle.tsx
-rm components/ui/tooltip.tsx
-```
-
-### 2. KEEP ONLY ESSENTIAL COMPONENTS
-```bash
-# Keep these (actually used):
-components/ui/button.tsx ✅
-components/ui/card.tsx ✅  
-components/ui/input.tsx ✅
-components/ui/aspect-ratio.tsx ✅
-components/ui/utils.ts ✅
-components/ui/use-mobile.ts ✅
-```
+### 1. KEEP ONLY ESSENTIAL COMPONENTS
+`components/ui/` now only ships the primitives currently used (`button`, `card`, `input`, `aspect-ratio`, `utils`, `use-mobile`). Remove or re-add others intentionally if future features need them.
 
 ### 3. IMAGE OPTIMIZATIONS
 ```javascript

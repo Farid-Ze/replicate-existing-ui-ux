@@ -3,7 +3,8 @@ export type FeatureFlagKey =
   | "lazyHomeSections"
   | "performanceMetrics"
   | "analytics"
-  | "monitoring";
+  | "monitoring"
+  | "pwa";
 
 const truthy = new Set(["true", "1", "yes"]);
 
@@ -15,6 +16,7 @@ const featureFlagValues: Record<FeatureFlagKey, boolean> = {
   performanceMetrics: truthy.has(String(env.VITE_ENABLE_PERF_METRICS ?? "").toLowerCase()),
   analytics: truthy.has(String(env.VITE_ENABLE_ANALYTICS ?? "").toLowerCase()),
   monitoring: truthy.has(String(env.VITE_ENABLE_MONITORING ?? "").toLowerCase()),
+  pwa: truthy.has(String(env.VITE_ENABLE_PWA ?? "").toLowerCase()),
 };
 
 const overrides: Partial<Record<FeatureFlagKey, boolean>> = {};

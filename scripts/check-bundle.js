@@ -5,7 +5,11 @@ const path = require('path');
 const { gzipSync } = require('zlib');
 
 const BUILD_DIR = path.join(process.cwd(), 'build', 'assets');
-const LIMIT_KB = 250;
+const LIMIT_KB = Number(process.env.BUNDLE_LIMIT_KB || 250);
+const PER_FILE_LIMITS = (process.env.BUNDLE_FILE_LIMITS || '').split(',').map((pair) => {
+  const [name, kb] = pair.split(':');
+  return name && kb ? { name, limitKb: Number(kb) } : null;
+}).filter(Boolean);
 
 function formatKb(bytes) {
   return (bytes / 1024).toFixed(2);
@@ -43,6 +47,17 @@ bundleFiles.forEach((filePath) => {
     );
     hasViolation = true;
   }
+
+  // Optional per-file budgets
+  const basename = path.basename(filePath);
+  PER_FILE_LIMITS.forEach(({ name, limitKb }) => {
+    if (basename.includes(name) && gzippedSize > limitKb * 1024) {
+      console.error(
+        `Bundle size violation (${name}): ${basename} is ${formatKb(gzippedSize)} kB gzip (limit ${limitKb} kB).`
+      );
+      hasViolation = true;
+    }
+  });
 });
 
 if (hasViolation) {

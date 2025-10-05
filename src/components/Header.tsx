@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback, memo } from 'react';
+import { isFeatureEnabled } from '@/featureFlags';
+import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 import { useTheme } from './ThemeContext';
+import { checkForUpdates } from '@/utils/swUpdates';
 
 interface HeaderProps {
   onBackToLanding?: () => void;
@@ -11,6 +14,9 @@ function Header({ onBackToLanding }: HeaderProps) {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const { theme, toggleTheme, isDark, isLight } = useTheme();
+  const showPwa = isFeatureEnabled('pwa');
+  const { canInstall, promptInstall, isStandalone, installed } = useInstallPrompt();
+  const canCheckUpdates = typeof navigator !== 'undefined' && 'serviceWorker' in navigator;
 
   // Enhanced scroll handling with hide/show on scroll direction
   const handleScroll = useCallback(() => {
@@ -185,6 +191,17 @@ function Header({ onBackToLanding }: HeaderProps) {
                   </svg>
                 </div>
               </button>
+
+              {showPwa && canInstall && !isStandalone && (
+                <button
+                  onClick={() => { void promptInstall(); }}
+                  className={`ml-4 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/50 ${
+                    isDark ? 'bg-white/10 hover:bg-white/15 text-white' : 'bg-black/10 hover:bg-black/15 text-black'
+                  }`}
+                >
+                  Install App
+                </button>
+              )}
             </div>
 
             {/* Mobile Menu Button - Zen approach */}
@@ -236,6 +253,40 @@ function Header({ onBackToLanding }: HeaderProps) {
               >
                 Newsletter
               </button>
+
+              {/* Desktop Install Button / Installed badge */}
+              {showPwa && canInstall && !isStandalone && !installed && (
+                <button
+                  onClick={() => { void promptInstall(); }}
+                  className={`ml-2 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/50 ${
+                    isDark ? 'bg-white/10 hover:bg-white/15 text-white' : 'bg-black/10 hover:bg-black/15 text-black'
+                  }`}
+                >
+                  Install App
+                </button>
+              )}
+              {showPwa && (installed || isStandalone) && (
+                <span
+                  className={`ml-2 px-3 py-2 rounded-full text-xs font-semibold ${
+                    isDark ? 'bg-emerald-900/40 text-emerald-200 border border-emerald-600/40' : 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                  }`}
+                  aria-label="App installed"
+                >
+                  Installed
+                </span>
+              )}
+
+              {/* Check for Updates */}
+              {showPwa && canCheckUpdates && (
+                <button
+                  onClick={() => { void checkForUpdates(); }}
+                  className={`ml-2 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/50 ${
+                    isDark ? 'bg-white/10 hover:bg-white/15 text-white' : 'bg-black/10 hover:bg-black/15 text-black'
+                  }`}
+                >
+                  Check Updates
+                </button>
+              )}
             </div>
           </div>
         </div>

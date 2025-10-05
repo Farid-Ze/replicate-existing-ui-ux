@@ -19,6 +19,7 @@ type HomePageProps = { onBackToLanding: () => void };
 type HomePageModule = typeof import("./components/HomePage");
 
 const lazyHomeEnabled = isFeatureEnabled("lazyHomePage");
+const pwaEnabled = isFeatureEnabled("pwa");
 
 let homePageModulePromise: Promise<HomePageModule> | null = null;
 
@@ -28,6 +29,16 @@ function ensureHomePageModule() {
   }
   return homePageModulePromise;
 }
+
+const LazyToaster = lazy(async () => {
+  const mod = await import("sonner");
+  return { default: mod.Toaster };
+});
+
+const LazyPWAInstallFab = lazy(async () => {
+  const mod = await import("./components/PWAInstallFab");
+  return { default: mod.PWAInstallFab };
+});
 
 export function preloadHomePage() {
   return ensureHomePageModule();
@@ -49,14 +60,14 @@ export default function App() {
 
   const navigateToHome = useCallback(() => {
     if (isTransitioning) return;
-    
+
     setIsTransitioning(true);
     setNextPage('home');
 
     if (lazyHomeEnabled) {
       void preloadHomePage();
     }
-    
+
     // Smooth transition with proper timing
     setTimeout(() => {
       startTransition(() => {
@@ -69,10 +80,10 @@ export default function App() {
 
   const navigateToLanding = useCallback(() => {
     if (isTransitioning) return;
-    
+
     setIsTransitioning(true);
     setNextPage('landing');
-    
+
     setTimeout(() => {
       startTransition(() => {
         setCurrentPage('landing');
@@ -96,7 +107,7 @@ export default function App() {
     };
 
     window.addEventListener('popstate', handlePopState);
-    
+
     // Set initial history state
     window.history.replaceState({ page: currentPage }, '', window.location.pathname);
 
@@ -114,8 +125,10 @@ export default function App() {
   return (
     <ThemeProvider>
       <AccessibilityProvider>
-        <PageTransition 
-          isTransitioning={isTransitioning} 
+        {/* Skip to content link for keyboard users */}
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:bg-white focus:text-black focus:px-4 focus:py-2 focus:rounded-md">Skip to content</a>
+        <PageTransition
+          isTransitioning={isTransitioning}
           direction={nextPage === 'home' ? 'forward' : 'backward'}
         >
           {currentPage === 'landing' ? (
@@ -126,6 +139,16 @@ export default function App() {
             </Suspense>
           )}
         </PageTransition>
+        {pwaEnabled ? (
+          <Suspense fallback={null}>
+            <LazyPWAInstallFab />
+          </Suspense>
+        ) : null}
+        {pwaEnabled ? (
+          <Suspense fallback={null}>
+            <LazyToaster position="top-center" richColors closeButton />
+          </Suspense>
+        ) : null}
       </AccessibilityProvider>
     </ThemeProvider>
   );

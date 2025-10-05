@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "./ThemeContext";
+import { OptimizedImage } from "./OptimizedImage";
 
 interface HeroSectionProps {
   onNavigateToHome?: () => void;
@@ -59,9 +60,9 @@ function HeroSection({ onNavigateToHome }: HeroSectionProps) {
 
     const animateClouds = () => {
       if (!isAnimating) return;
-      
+
       const elapsed = (Date.now() - startTime) / 1000;
-      
+
       // Throttle animation to reduce CPU usage
       if (elapsed % 0.016 < 0.008) { // ~60fps throttle
         cloudRefs.current.forEach((cloudElement, index) => {
@@ -95,19 +96,19 @@ function HeroSection({ onNavigateToHome }: HeroSectionProps) {
     };
   }, [isLoaded]);
 
-  const CloudImage = ({ 
-    src, 
-    alt, 
-    className, 
-    index 
-  }: { 
-    src: string; 
-    alt: string; 
-    className: string; 
-    index: number; 
+  const CloudImage = ({
+    src,
+    alt,
+    className,
+    index
+  }: {
+    src: string;
+    alt: string;
+    className: string;
+    index: number;
   }) => {
     return (
-      <div 
+      <div
         ref={(el) => {
           cloudRefs.current[index] = el;
         }}
@@ -118,7 +119,7 @@ function HeroSection({ onNavigateToHome }: HeroSectionProps) {
           transition: 'opacity 0.3s ease'
         }}
       >
-        <img 
+        <img
           src={src}
           alt={alt}
           className={className}
@@ -137,37 +138,40 @@ function HeroSection({ onNavigateToHome }: HeroSectionProps) {
       <div className="padding-global stretch lift-z">
         <div className="container-xlarge">
           <div className={`hero_grid flex flex-col items-center justify-center min-h-screen py-24 sm:py-28 lg:py-32 transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
-            
+
 
 
             {/* Main CTA - Logo */}
-            <button 
+            <button
               className="hero_content zen-focus informatika-efficient transition-all duration-300 cursor-pointer border-none bg-transparent focus:outline-none focus-visible:ring-4 focus-visible:ring-pink-500/30 rounded-2xl p-6"
               onClick={onNavigateToHome}
               aria-label="Enter Things Inc Portfolio"
               ref={logoRef}
             >
-              <div className="home-logo-wrap balloon relative">
-                {/* Night/Dark theme logo */}
-                <img 
-                  src="https://cdn.prod.website-files.com/66ea3a5528a044beafcf913e/6705b9208ebb9e666ec8413b_Home-logo_night.png"
-                  alt="Things logo - Click to enter" 
-                  className={`hero-logo hero-night w-full max-w-[320px] sm:max-w-[440px] lg:max-w-[520px] xl:max-w-[600px] h-auto filter drop-shadow-2xl transition-all duration-500 ${
-                    isDark ? 'opacity-100' : 'opacity-0'
-                  }`}
-                  loading="eager"
-                  sizes="(max-width: 640px) 320px, (max-width: 1024px) 440px, (max-width: 1280px) 520px, 600px"
-                />
-                
-                {/* Day/Light theme logo */}
-                <img 
-                  src="https://cdn.prod.website-files.com/66ea3a5528a044beafcf913e/6724406f04b26f75915dd8c2_Home-logo_day.png"
-                  alt="Things logo day - Click to enter" 
-                  className={`hero-logo hero-day absolute inset-0 w-full h-auto filter drop-shadow-2xl transition-all duration-500 ${
-                    isLight ? 'opacity-100' : 'opacity-0'
-                  }`}
-                  loading="lazy"
-                />
+              <div className="home-logo-wrap balloon relative flex items-center justify-center">
+                {isDark ? (
+                  <OptimizedImage
+                    src="https://cdn.prod.website-files.com/66ea3a5528a044beafcf913e/6705b9208ebb9e666ec8413b_Home-logo_night.png"
+                    alt="Things logo - Click to enter"
+                    className=""
+                    imgClassName="hero-logo hero-night w-full max-w-[320px] sm:max-w-[440px] lg:max-w-[520px] xl:max-w-[600px] h-auto object-contain filter drop-shadow-2xl"
+                    loading="eager"
+                    priority
+                    fetchPriority="high"
+                    sizes="(max-width: 640px) 320px, (max-width: 1024px) 440px, (max-width: 1280px) 520px, 600px"
+                  />
+                ) : (
+                  <OptimizedImage
+                    src="https://cdn.prod.website-files.com/66ea3a5528a044beafcf913e/6724406f04b26f75915dd8c2_Home-logo_day.png"
+                    alt="Things logo day - Click to enter"
+                    className=""
+                    imgClassName="hero-logo hero-day w-full max-w-[320px] sm:max-w-[440px] lg:max-w-[520px] xl:max-w-[600px] h-auto object-contain filter drop-shadow-2xl"
+                    loading="eager"
+                    priority
+                    fetchPriority="high"
+                    sizes="(max-width: 640px) 320px, (max-width: 1024px) 440px, (max-width: 1280px) 520px, 600px"
+                  />
+                )}
               </div>
             </button>
 
@@ -214,10 +218,10 @@ function HeroSection({ onNavigateToHome }: HeroSectionProps) {
       )}
 
       {/* Optimized Stars Overlay */}
-      <div 
-        id="aboutStars" 
+      <div
+        id="aboutStars"
         className="stars-overlay home-stars absolute inset-0 pointer-events-none"
-        style={{ 
+        style={{
           display: 'block',
           opacity: isLoaded ? 1 : 0,
           transition: 'opacity 1s ease-in-out'

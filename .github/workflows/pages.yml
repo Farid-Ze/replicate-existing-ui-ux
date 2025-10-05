@@ -3,7 +3,25 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      enable_perf_metrics:
+        description: "Set VITE_ENABLE_PERF_METRICS at build time"
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+      enable_monitoring:
+        description: "Set VITE_ENABLE_MONITORING at build time"
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+      ref:
+        description: "Git ref (branch/tag) to deploy"
+        required: false
+        default: "main"
+        type: string
 
 permissions:
   contents: read
@@ -19,9 +37,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BASE_PATH: /${{ github.event.repository.name }}/
+      VITE_ENABLE_PERF_METRICS: ${{ inputs.enable_perf_metrics || 'false' }}
+      VITE_ENABLE_MONITORING: ${{ inputs.enable_monitoring || 'false' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || 'main' }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -35,7 +57,7 @@ jobs:
         - name: Setup Pages
           uses: actions/configure-pages@v5
 
-      - name: Build (Vite) with repo base path
+      - name: Build (Vite) with repo base path and flags
         run: npm run build -- --base=${{ env.BASE_PATH }}
 
       - name: Upload Pages artifact

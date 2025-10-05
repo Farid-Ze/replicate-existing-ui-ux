@@ -20,6 +20,7 @@ npm run dev         # start the Vite dev server (http://localhost:5173 by defaul
 npm run lint        # run ESLint (React + a11y rules)
 npm run test        # execute Vitest + axe accessibility smoke checks
 npm run test:e2e    # execute Playwright smoke covering theme + filters (run `npx playwright install` once)
+npm run test:e2e:pwa# build with PWA flag, serve preview, and run offline/update toast end-to-end checks
 npm run build       # create a production build in /build
 npm run bundle:check# validate gzip bundle budget (250 kB limit)
 npm run analyze     # emit build/bundle-report.html with treemap metrics
@@ -35,15 +36,22 @@ Toggle performance and monitoring behaviour via Vite environment variables (set 
 | `VITE_ENABLE_LAZY_HOME_SECTIONS=true` | Splits the quote, log book, and footer sections into their own suspense boundaries with progressive fallbacks.                                         |
 | `VITE_ENABLE_PERF_METRICS=true`       | Registers Web Vitals listeners (CLS/FID/LCP/INP/TTFB), records them via the in-app collector, and dispatches `perf-metric` events for custom handling. |
 | `VITE_ENABLE_ANALYTICS=true`          | Injects [Vercel Analytics](https://vercel.com/analytics) for real-time engagement/performance tracking.                                                |
-| `VITE_ENABLE_MONITORING=true`         | Streams collected Web Vitals directly to [`@vercel/speed-insights`](https://vercel.com/docs/speed-insights) for production monitoring.                 |
+| `VITE_ENABLE_MONITORING=true`         | Boots [Sentry](https://sentry.io/) in production (requires `VITE_SENTRY_DSN`) to capture runtime errors and traces.                                   |
+| `VITE_ENABLE_PWA=true`                | Registers the service worker, surfaces install prompts, and enables update toasts (production builds only).                                           |
 
 All flags default to `false`, keeping the legacy behaviour until you're ready to roll out.
 
 ## Monitoring
 
-- `VITE_ENABLE_ANALYTICS=true` automatically calls `@vercel/analytics`’s `inject()` helper on bootstrap for engagement dashboards.
-- `VITE_ENABLE_PERF_METRICS=true` + `VITE_ENABLE_MONITORING=true` stream Core Web Vitals to [`@vercel/speed-insights`](https://vercel.com/docs/speed-insights) using the built-in `PerformanceCollector`.
-- Listen for the `perf-metric` event (or inject a custom reporter into `initPerformanceMetrics`) to forward metrics to your preferred observability stack.
+
+## PWA & offline testing
+
+The service worker lives in `public/sw.js` and stays dormant unless `VITE_ENABLE_PWA=true` at build time. To validate the offline experience without impacting local dev:
+
+- Create a `.env.local` with `VITE_ENABLE_PWA=true` and build the project (`npm run build`), or set the flag in your hosting environment for a staging deploy.
+- Preview with `npm run preview:pages`, install the app prompt, and toggle airplane mode to confirm navigation falls back to `offline.html`.
+- If you ship new assets, bump `CACHE_VERSION` inside `sw.js` so stale caches are purged during `activate`.
+- Each production build writes `build/asset-manifest.txt`; the service worker consumes it to precache hashed JS/CSS and eligible images/fonts.
 
 ## Continuous integration
 

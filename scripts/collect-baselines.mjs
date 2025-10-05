@@ -11,8 +11,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, "../");
 const reportsDir = path.join(projectRoot, "reports");
-const PREVIEW_HOST = "127.0.0.1";
-const PREVIEW_PORT = "4173";
+const PREVIEW_HOST = "localhost";
+const PREVIEW_PORT = "3000";
 const TARGET_URL = `http://${PREVIEW_HOST}:${PREVIEW_PORT}/`;
 
 const require = createRequire(import.meta.url);
@@ -166,7 +166,7 @@ async function collectBaselines() {
       };
     });
 
-    const timestamp = new Date().toISOString();
+  const timestamp = new Date().toISOString();
     const report = {
       timestamp,
       url: TARGET_URL,
@@ -187,6 +187,24 @@ async function collectBaselines() {
 
     console.log("➤ Baseline report written to", reportPath);
     console.log("➤ Performance summary:", performanceSummary);
+
+    // Guardrails: fail on bad vitals if configured thresholds are exceeded
+    const LCP_LIMIT = Number(process.env.LCP_LIMIT_MS || 2500);
+    const CLS_LIMIT = Number(process.env.CLS_LIMIT || 0.1);
+    const lcp = performanceSummary.largestContentfulPaint ?? performanceSummary.firstContentfulPaint;
+    const cls = performanceSummary.cumulativeLayoutShift ?? 0;
+    let guardFailed = false;
+    if (lcp != null && lcp > LCP_LIMIT) {
+      console.error(`✖ LCP ${lcp.toFixed(0)}ms exceeded limit ${LCP_LIMIT}ms`);
+      guardFailed = true;
+    }
+    if (cls > CLS_LIMIT) {
+      console.error(`✖ CLS ${cls.toFixed(3)} exceeded limit ${CLS_LIMIT}`);
+      guardFailed = true;
+    }
+    if (guardFailed) {
+      process.exitCode = 1;
+    }
     console.log(
       "➤ Accessibility violations:",
       axeResults.violations.map((v) => `${v.id} (${v.impact ?? "unknown"})`).join(", ") || "none",

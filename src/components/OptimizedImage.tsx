@@ -9,6 +9,26 @@ interface OptimizedImageProps {
   height?: number;
   loading?: 'lazy' | 'eager';
   priority?: boolean;
+  /**
+   * Standard responsive attributes for the fallback <img>
+   */
+  sizes?: string;
+  srcSet?: string;
+  /**
+   * Optional modern format sources for the <picture> element.
+   * When provided, they will be preferred by capable browsers.
+   */
+  srcSetWebp?: string;
+  srcSetAvif?: string;
+  /**
+   * Explicit fetch priority hint. If `priority` is true, this is set to 'high'.
+   */
+  fetchPriority?: 'high' | 'low' | 'auto';
+  /**
+   * Optional className override for the inner <img> element.
+   * Defaults to a cover behavior for photography; logos might set object-contain.
+   */
+  imgClassName?: string;
   onLoad?: () => void;
   onError?: () => void;
 }
@@ -22,6 +42,12 @@ export function OptimizedImage({
   height,
   loading = 'lazy',
   priority = false,
+  sizes,
+  srcSet,
+  srcSetWebp,
+  srcSetAvif,
+  fetchPriority,
+  imgClassName,
   onLoad,
   onError
 }: OptimizedImageProps) {
@@ -79,6 +105,9 @@ export function OptimizedImage({
     onError?.();
   };
 
+  const actualLoading: 'lazy' | 'eager' = priority ? 'eager' : loading;
+  const defaultSizes = sizes ?? '100vw';
+
   return (
     <div className={`relative ${className}`}>
       {/* Placeholder */}
@@ -86,32 +115,62 @@ export function OptimizedImage({
         <img
           src={placeholder}
           alt=""
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
-            imageLoaded ? 'opacity-0' : 'opacity-100'
-          }`}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-0' : 'opacity-100'
+            }`}
           aria-hidden="true"
         />
       )}
 
       {/* Main image */}
-      <img
-        ref={imgRef}
-        src={isIntersecting ? src : placeholder}
-        alt={alt}
-        width={width}
-        height={height}
-        loading={loading}
-        decoding="async"
-        className={`w-full h-full object-cover transition-opacity duration-300 ${
-          imageLoaded ? 'opacity-100' : 'opacity-0'
-        } ${imageError ? 'hidden' : ''}`}
-        onLoad={handleLoad}
-        onError={handleError}
-        style={{
-          // Prevent layout shift
-          aspectRatio: width && height ? `${width}/${height}` : 'auto'
-        }}
-      />
+      {isIntersecting ? (
+        <picture>
+          {srcSetAvif ? (
+            <source type="image/avif" srcSet={srcSetAvif} sizes={defaultSizes} />
+          ) : null}
+          {srcSetWebp ? (
+            <source type="image/webp" srcSet={srcSetWebp} sizes={defaultSizes} />
+          ) : null}
+          <img
+            ref={imgRef}
+            src={src}
+            srcSet={srcSet}
+            sizes={defaultSizes}
+            alt={alt}
+            width={width}
+            height={height}
+            loading={actualLoading}
+            decoding="async"
+            fetchPriority={priority ? 'high' : fetchPriority}
+            className={`${imgClassName ?? 'w-full h-full object-cover'
+              } transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'} ${imageError ? 'hidden' : ''
+              }`}
+            onLoad={handleLoad}
+            onError={handleError}
+            style={{
+              // Prevent layout shift
+              aspectRatio: width && height ? `${width}/${height}` : 'auto'
+            }}
+          />
+        </picture>
+      ) : (
+        <img
+          ref={imgRef}
+          src={placeholder}
+          alt={alt}
+          width={width}
+          height={height}
+          loading={actualLoading}
+          decoding="async"
+          className={`${imgClassName ?? 'w-full h-full object-cover'
+            } transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'} ${imageError ? 'hidden' : ''
+            }`}
+          onLoad={handleLoad}
+          onError={handleError}
+          style={{
+            aspectRatio: width && height ? `${width}/${height}` : 'auto'
+          }}
+        />
+      )}
 
       {/* Error fallback */}
       {imageError && (

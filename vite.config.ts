@@ -2,10 +2,13 @@
 import { defineConfig, type PluginOption, type UserConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
+// PWA and Sentry build plugins are intentionally omitted to avoid peer conflicts.
 
 export default defineConfig(async ({ mode }) => {
   const analyze = mode === 'analyze' || process.env.BUNDLE_ANALYZE === 'true';
   const plugins: PluginOption[] = [react()];
+
+  // Note: PWA plugin can be added later if needed with a compatible vite-plugin-pwa version.
 
   if (analyze) {
     const { visualizer } = (await import(
@@ -50,5 +53,6 @@ export default defineConfig(async ({ mode }) => {
       },
     },
   };
+  // Note: Sentry upload plugin is disabled for now; app-level Sentry init is still active via flags.
   return config;
 });
