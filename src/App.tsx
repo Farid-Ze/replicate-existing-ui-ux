@@ -14,6 +14,8 @@ import HeroSection from "./components/HeroSection";
 import PageTransition from "./components/PageTransition";
 import AccessibilityProvider from "./components/AccessibilityProvider";
 import { isFeatureEnabled } from "./featureFlags";
+import { triggerUpdateToast } from "./pwaDebug";
+import { loadSonner } from "./utils/loadSonner";
 
 type HomePageProps = { onBackToLanding: () => void };
 type HomePageModule = typeof import("./components/HomePage");
@@ -121,6 +123,74 @@ export default function App() {
       window.history.pushState({ page: currentPage }, '', url);
     }
   }, [currentPage, isTransitioning]);
+
+  useEffect(() => {
+    if (!pwaEnabled) return;
+  let cancelled = false;
+  let observer: MutationObserver | null = null;
+  let fallbackTimeout: number | null = null;
+  const win = window as typeof window & { __PWA_DEBUG_READY?: boolean };
+    const handler: EventListener = (event) => {
+      const customEvent = event as CustomEvent<ServiceWorker | undefined>;
+      triggerUpdateToast(customEvent?.detail);
+    };
+    const markReady = () => {
+      if (cancelled) return;
+      if (win.__PWA_DEBUG_READY === true) return;
+      win.__PWA_DEBUG_READY = true;
+      if (fallbackTimeout !== null) {
+        window.clearTimeout(fallbackTimeout);
+        fallbackTimeout = null;
+      }
+    };
+    const ensureToasterPresent = () => {
+      const toaster = document.querySelector('[data-sonner-toaster]');
+      if (toaster) {
+        markReady();
+        observer?.disconnect();
+        observer = null;
+        return true;
+      }
+      return false;
+    };
+
+    win.__PWA_DEBUG_READY = false;
+    void loadSonner()
+      .catch(() => {})
+      .finally(() => {
+        if (cancelled) return;
+        if (ensureToasterPresent()) {
+          return;
+        }
+        observer = new MutationObserver(() => {
+          if (ensureToasterPresent()) {
+            observer?.disconnect();
+            observer = null;
+          }
+        });
+        const target = document.body ?? document.documentElement;
+        if (!target) {
+          markReady();
+          return;
+        }
+        observer.observe(target, { childList: true, subtree: true });
+        fallbackTimeout = window.setTimeout(() => {
+          markReady();
+          observer?.disconnect();
+          observer = null;
+        }, 3000);
+      });
+  window.addEventListener('pwa:debug-update-toast', handler);
+    return () => {
+      cancelled = true;
+      observer?.disconnect();
+      if (fallbackTimeout !== null) {
+        window.clearTimeout(fallbackTimeout);
+      }
+  window.removeEventListener('pwa:debug-update-toast', handler);
+      delete win.__PWA_DEBUG_READY;
+    };
+  }, []);
 
   return (
     <ThemeProvider>

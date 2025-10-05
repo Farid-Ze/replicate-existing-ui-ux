@@ -95,7 +95,7 @@
         "test": "vitest run",
         "test:watch": "vitest",
         "test:e2e": "playwright test",
-        "test:e2e:pwa": "cross-env VITE_ENABLE_PWA=true npm run build && cross-env E2E_PWA=true VITE_ENABLE_PWA=true npx playwright test --config playwright.pwa.config.ts",
+        "test:e2e:pwa": "cross-env VITE_ENABLE_PWA=true VITE_E2E_PWA=true npm run build && cross-env E2E_PWA=true VITE_ENABLE_PWA=true VITE_E2E_PWA=true npx playwright test --config playwright.pwa.config.ts",
         "bundle:check": "node scripts/check-bundle.js",
         "baseline:collect": "node scripts/collect-baselines.mjs",
         "baseline:flags:on": "cross-env VITE_ENABLE_PERF_METRICS=true VITE_ENABLE_MONITORING=true npm run baseline:collect",

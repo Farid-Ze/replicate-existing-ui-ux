@@ -5,6 +5,7 @@ import { isFeatureEnabled } from "./featureFlags";
 import { initPerformanceMetrics } from "./utils/performanceMetrics";
 import * as Sentry from "@sentry/react";
 import { loadSonner } from "./utils/loadSonner";
+import { registerUpdateToastCallback, triggerUpdateToast } from "./pwaDebug";
 
 const pwaEnabled = isFeatureEnabled("pwa");
 
@@ -77,6 +78,18 @@ const showUpdateToast = (waiting?: ServiceWorker) => {
     .catch(() => {});
 };
 
+registerUpdateToastCallback(showUpdateToast);
+
+const forwardDebugToast = (event?: Event) => {
+  const customEvent = event as CustomEvent<ServiceWorker | undefined> | undefined;
+  triggerUpdateToast(customEvent?.detail);
+};
+
+if (typeof window !== "undefined") {
+  (globalThis as Record<string, unknown>)["__PWA_DEBUG_TOAST"] = triggerUpdateToast;
+  window.addEventListener("pwa:debug-update-toast", forwardDebugToast as EventListener);
+}
+
 // Register service worker when PWA flag enabled and in production
 if (pwaEnabled && import.meta.env.PROD && "serviceWorker" in navigator) {
   window.addEventListener("load", () => {
@@ -127,13 +140,9 @@ if (pwaEnabled && import.meta.env.PROD && "serviceWorker" in navigator) {
         }
       });
   });
+  window.addEventListener("pwa:debug-update-toast", forwardDebugToast as EventListener);
 }
 
-if (pwaEnabled && typeof window !== "undefined" && import.meta.env.MODE !== "production") {
-  (window as typeof window & { __PWA_DEBUG_TOAST?: () => void }).__PWA_DEBUG_TOAST = () => {
-    showUpdateToast();
-  };
-}
 
 createRoot(document.getElementById("root")!).render(
   <Sentry.ErrorBoundary fallback={<div>Something went wrong.</div>}>

@@ -76,9 +76,19 @@ self.addEventListener('fetch', (event) => {
   if (req.mode === 'navigate') {
     event.respondWith(
       (async () => {
+        if (typeof self.navigator !== 'undefined' && self.navigator.onLine === false) {
+          return (
+            (await caches.match(p('offline.html'))) ||
+            (await caches.match(p('index.html'))) ||
+            new Response('Offline', { status: 503 })
+          );
+        }
         try {
-          const networkResponse = await fetch(req);
-          return networkResponse;
+          const networkResponse = await fetch(req, { cache: 'no-store' });
+          if (networkResponse && networkResponse.ok) {
+            return networkResponse;
+          }
+          throw new Error('offline');
         } catch {
           // Fallback to an offline page; if missing, fallback to the SPA shell
           return (
